@@ -1,0 +1,22 @@
+{
+  "name": "testone-kleros",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "truffle-init": "truffle init",
+    "truffle-compile": "truffle compile",
+    "contract-deploy": "node deployContract.js",
+    "compile-and-deploy": "npm run truffle-compile && npm run contract-deploy"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-sqs": "^3.675.0",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.4",
+    "truffle": "^5.11.5"
+  }
+}
