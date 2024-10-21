@@ -20,8 +20,8 @@ export const handler = async (event) => {
     // Iterate through each SQS message
     for (const record of event.Records) {
         const messageBody = JSON.parse(record.body);
-        
         const txHash = messageBody.txHash; // Assuming your message has txHash
+        console.log('TxHash:', txHash);
 
         try {
             const tx = await contract.pong(txHash);
