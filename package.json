@@ -14,9 +14,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.675.0",
     "@aws-sdk/client-sqs": "^3.675.0",
+    "@aws-sdk/lib-dynamodb": "^3.675.0",
     "dotenv": "^16.4.5",
     "ethers": "^6.13.4",
     "truffle": "^5.11.5"
+  },
+  "devDependencies": {
+    "@types/aws-sdk": "^0.0.42"
   }
 }
