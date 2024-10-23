@@ -40,8 +40,7 @@ const waitForBlockToBeMined = async (desiredBlockNumber) => {
     return latestBlockNumber;
 };
 
-// Example usage
-(async () => {
+async function initBlock() {
     try {
         let desiredBlockNumber;
 
@@ -65,5 +64,8 @@ const waitForBlockToBeMined = async (desiredBlockNumber) => {
         console.log('The current block has been confirmed.');
     } catch (error) {
         console.error('Error while waiting for the block to be confirmed:', error);
+        throw error;
     }
-})();
+};
+
+module.exports = { initBlock };

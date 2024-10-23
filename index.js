@@ -2,6 +2,8 @@ require('dotenv').config();
 const { ethers } = require('ethers');
 const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
 
+const { initBlock } = require('./initBlock');
+
 const provider = new ethers.WebSocketProvider(process.env.INFURA_WS_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
@@ -47,7 +49,9 @@ async function sendMessageToSQS(txHash) {
   }
 }
 
-init().then(() => {
+initBlock()
+.then(init)
+.then(() => {
   console.log('Bot is running and waiting for Ping events...');
 }).catch(err => {
   console.error('Error during initialization:', err);
