@@ -23,6 +23,7 @@ const upsertRecord = async (tableName, item) => {
         console.log(`Record created/updated in table ${tableName}:`, item);
     } catch (error) {
         console.error('Error creating/updating record:', error);
+        throw error;
     }
 };
 
@@ -74,6 +75,7 @@ const updateRecord = async (tableName, key, updateExpression, expressionValues) 
         console.log(`Record updated in table ${tableName}:`, key);
     } catch (error) {
         console.error('Error updating record:', error);
+        throw error;
     }
 };
 
@@ -94,6 +96,7 @@ const deleteRecord = async (tableName, key) => {
         console.log(`Record deleted from table ${tableName}:`, key);
     } catch (error) {
         console.error('Error deleting record:', error);
+        throw error;
     }
 };
 

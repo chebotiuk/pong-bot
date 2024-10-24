@@ -3,6 +3,7 @@ const { ethers } = require('ethers');
 const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
 
 const { initBlock } = require('./initBlock');
+const { upsertRecord } = require('./db');
 
 const provider = new ethers.WebSocketProvider(process.env.INFURA_WS_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
@@ -27,6 +28,13 @@ async function init() {
     if (txHash) {
       console.log(`Ping detected! Transaction: ${txHash}`);
       await sendMessageToSQS(txHash);
+
+      const unixTimestamp = Math.floor(Date.now() / 1000);
+      await upsertRecord('txStatus', {
+        txHash,
+        value: 'recieved',
+        timestamp: unixTimestamp,
+      });
     } else {
       console.error("Error: txHash is undefined.");
     }
