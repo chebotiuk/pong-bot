@@ -55,6 +55,32 @@ const readRecord = async (tableName, key) => {
 };
 
 /**
+ * Retrieves the latest transaction from the DynamoDB table using the timestamp as the Sort Key.
+ * @param tableName - The name of the DynamoDB table.
+ * @returns The latest transaction or null if the table is empty.
+ */
+const getLatest = async (tableName) => {
+  const params = {
+      TableName: tableName,
+      // Using expression attribute names to avoid reserved keyword conflicts
+      ProjectionExpression: "#tx, #ts",
+      ExpressionAttributeNames: {
+          "#tx": "txHash",
+          "#ts": "timestamp"
+      }
+  };
+
+  try {
+      const data = await dynamoDb.scan(params);
+      const items = data.Items.sort((a, b) => a.timestamp - b.timestamp);
+      return (items[0] === undefined) ? null : items[0];
+  } catch (error) {
+      console.error("Error fetching latest transaction with scan:", error);
+      throw error;
+  }
+};
+
+/**
  * Updates a record in the specified DynamoDB table.
  * @param tableName - The name of the DynamoDB table.
  * @param key - The key used to identify the item.
@@ -103,6 +129,7 @@ const deleteRecord = async (tableName, key) => {
 module.exports = {
     upsertRecord,
     readRecord,
+    getLatest,
     updateRecord,
     deleteRecord
 };

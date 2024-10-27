@@ -53,7 +53,7 @@ export const readRecord = async (tableName, key) => {
     }
 };
 
-export const queryRecordsByPartitionKey = async (tableName, partitionKey, partitionKeyValue) => {
+export const queryRecordByPartitionKey = async (tableName, partitionKey, partitionKeyValue) => {
     const params = {
         TableName: tableName,
         KeyConditionExpression: `${partitionKey} = :${partitionKey}Value`,
@@ -67,7 +67,7 @@ export const queryRecordsByPartitionKey = async (tableName, partitionKey, partit
         const data = await dynamoDbClient.send(command);
         if (data.Items && data.Items.length > 0) {
             console.log('Records found:', data.Items);
-            return data.Items; // Returns an array of records
+            return data.Items[0];
         } else {
             console.log('No records found');
             return null;
@@ -84,14 +84,16 @@ export const queryRecordsByPartitionKey = async (tableName, partitionKey, partit
  * @param key - The key used to identify the item.
  * @param updateExpression - The update expression defining the changes.
  * @param expressionValues - The values to be substituted in the update expression.
+ * @param expressionAttributeNames - Attr names.
  * @returns A promise that resolves when the update is complete.
  */
-export const updateRecord = async (tableName, key, updateExpression, expressionValues) => {
+export const updateRecord = async (tableName, key, updateExpression, expressionValues, expressionAttributeNames) => {
     const params = {
         TableName: tableName,
         Key: key,
         UpdateExpression: updateExpression,
-        ExpressionAttributeValues: expressionValues
+        ExpressionAttributeValues: expressionValues,
+        ExpressionAttributeNames: expressionAttributeNames,
     };
 
     try {

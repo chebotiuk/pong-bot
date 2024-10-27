@@ -4,6 +4,7 @@ const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
 
 const { initBlock } = require('./initBlock');
 const { upsertRecord } = require('./db');
+const { initPendingTransactions } = require('./initPendingTransactions');
 
 const provider = new ethers.WebSocketProvider(process.env.INFURA_WS_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
@@ -13,7 +14,7 @@ const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS; // 0xa7f42ff7433cb268dd7d
 const sqs = new SQSClient({ region: 'us-east-1' });
 const queueUrl = process.env.SQS_QUEUE_URL;
 
-async function init() {
+async function init(pendingTransactions) {
   const currentBlock = await provider.getBlockNumber();
   console.log('Current block:', currentBlock);
   
@@ -22,19 +23,18 @@ async function init() {
   ];
   
   const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
+
+  if (pendingTransactions.length !== 0) {
+    for (const txHash of pendingTransactions) {
+      processTransaction(txHash);
+    }
+  }
   
   contract.on('Ping', async (event) => {
     const txHash = event.log.transactionHash;
     if (txHash) {
       console.log(`Ping detected! Transaction: ${txHash}`);
-      await sendMessageToSQS(txHash);
-
-      const unixTimestamp = Math.floor(Date.now() / 1000);
-      await upsertRecord('txStatus', {
-        txHash,
-        value: 'recieved',
-        timestamp: unixTimestamp,
-      });
+      await processTransaction(txHash);
     } else {
       console.error("Error: txHash is undefined.");
     }
@@ -57,7 +57,19 @@ async function sendMessageToSQS(txHash) {
   }
 }
 
+async function processTransaction(txHash) {
+  await sendMessageToSQS(txHash);
+
+  const unixTimestamp = Math.floor(Date.now() / 1000);
+  await upsertRecord('txStatus', {
+    txHash,
+    value: 'recieved',
+    timestamp: unixTimestamp,
+  });
+}
+
 initBlock()
+.then(initPendingTransactions)
 .then(init)
 .then(() => {
   console.log('Bot is running and waiting for Ping events...');
