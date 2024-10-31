@@ -1,6 +1,8 @@
 import { SQSClient, ReceiveMessageCommand, SendMessageCommand, DeleteMessageCommand } from '@aws-sdk/client-sqs';
 
 const sqs = new SQSClient({ region: 'us-east-1' });
+const dlqUrl = process.env.DLQ_URL;
+const queueUrl = process.env.SQS_QUEUE_URL;
 
 export const handler = async (event) => {
    const receiveParams = {
