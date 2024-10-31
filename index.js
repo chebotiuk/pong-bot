@@ -5,6 +5,7 @@ const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
 const { initBlock } = require('./initBlock');
 const { upsertRecord } = require('./db');
 const { initPendingTransactions } = require('./initPendingTransactions');
+const { emitter } = require('./eventEmitter');
 
 const provider = new ethers.WebSocketProvider(process.env.INFURA_WS_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
@@ -14,7 +15,7 @@ const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS; // 0xa7f42ff7433cb268dd7d
 const sqs = new SQSClient({ region: 'us-east-1' });
 const queueUrl = process.env.SQS_QUEUE_URL;
 
-async function init(pendingTransactions) {
+async function init() {
   const currentBlock = await provider.getBlockNumber();
   console.log('Current block:', currentBlock);
   
@@ -24,11 +25,9 @@ async function init(pendingTransactions) {
   
   const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
 
-  if (pendingTransactions.length !== 0) {
-    for (const txHash of pendingTransactions) {
-      processTransaction(txHash);
-    }
-  }
+  emitter.on('transaction_found', ({ txHash }) => {
+    processTransaction(txHash);
+  });
   
   contract.on('Ping', async (event) => {
     const txHash = event.log.transactionHash;
@@ -69,13 +68,14 @@ async function processTransaction(txHash) {
 }
 
 initBlock()
-.then(initPendingTransactions)
 .then(init)
 .then(() => {
   console.log('Bot is running and waiting for Ping events...');
 }).catch(err => {
   console.error('Error during initialization:', err);
 });
+
+initPendingTransactions();
 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught exception:', err);

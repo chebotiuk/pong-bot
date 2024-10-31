@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { DynamoDB } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocument } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocument, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 
 // Initialize the DynamoDB Document Client
 const dynamoDbClient = new DynamoDB({ region: 'us-east-1' });
@@ -72,7 +72,7 @@ const getLatest = async (tableName) => {
 
   try {
       const data = await dynamoDb.scan(params);
-      const items = data.Items.sort((a, b) => a.timestamp - b.timestamp);
+      const items = data.Items.sort((a, b) => b.timestamp - a.timestamp);
       return (items[0] === undefined) ? null : items[0];
   } catch (error) {
       console.error("Error fetching latest transaction with scan:", error);
@@ -126,10 +126,36 @@ const deleteRecord = async (tableName, key) => {
     }
 };
 
+const queryRecordByPartitionKey = async (tableName, partitionKey, partitionKeyValue) => {
+  const params = {
+      TableName: tableName,
+      KeyConditionExpression: `${partitionKey} = :${partitionKey}Value`,
+      ExpressionAttributeValues: {
+          [`:${partitionKey}Value`]: partitionKeyValue
+      }
+  };
+
+  try {
+      const command = new QueryCommand(params);
+      const data = await dynamoDbClient.send(command);
+      if (data.Items && data.Items.length > 0) {
+          console.log('Records found:', data.Items);
+          return data.Items[0];
+      } else {
+          console.log('No records found');
+          return null;
+      }
+  } catch (error) {
+      console.error('Error querying records:', error);
+      return null;
+  }
+};
+
 module.exports = {
     upsertRecord,
     readRecord,
     getLatest,
     updateRecord,
-    deleteRecord
+    deleteRecord,
+    queryRecordByPartitionKey
 };
