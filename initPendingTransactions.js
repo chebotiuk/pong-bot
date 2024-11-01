@@ -53,7 +53,6 @@ async function getFollowingTransactions(transactionHash, contractAddress) {
           const txsInBlock = blockWithTxs
               .filter(t => {
                 const isPingTx = extractTxData(t.data)?.name === 'ping';
-                console.log('Data from data:', extractTxData(t.data));
                 return t && (t.to && t.to.toLowerCase() === contractAddress.toLowerCase()) && isPingTx
               })
               .map(t => t.hash);
