@@ -73,6 +73,7 @@ initBlock()
   console.log('Bot is running and waiting for Ping events...');
 }).catch(err => {
   console.error('Error during initialization:', err);
+  throw err;
 });
 
 initPendingTransactions();
