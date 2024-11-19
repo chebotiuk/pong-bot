@@ -30,7 +30,8 @@ async function getFollowingTransactions(transactionHash, contractAddress) {
       // Retrieving credit amount per day for INFURA provider, allocating 80% for scanning missed blocks while server off
       const totalCallsAllowed = Math.round(DAILY_CREDITS * 0.8 / (INFURA_COST_eth_blockNumber + INFURA_COST_eth_getTransactionByHash));
       console.log('Total calls amount allocated for missed transactions scanning per 24h: ' + totalCallsAllowed);
-      const scanTimeoutOffset = (1440 * 60 * 1000) / totalCallsAllowed; // 24 house in milliseconds / totalCallsAllowed
+      const apprMaxEthTransactionsInBlock = 1500;
+      const scanTimeoutOffset = (1440 * 60 * 1000) / (totalCallsAllowed / apprMaxEthTransactionsInBlock); // 24 hours in milliseconds / totalCallsAllowed
       console.log('Scan timeout offset in munutes: ', 1440 / totalCallsAllowed);
 
       for (let i = scanBlockBias; i <= blocksToScan; i++) {
@@ -43,6 +44,8 @@ async function getFollowingTransactions(transactionHash, contractAddress) {
         try {
           const block = await provider.getBlock(startBlockNumber + i);
           if (!block || !block.transactions) return; // Skip if no transactions
+
+          console.log('Transactions amount in current scanned block: ' + block.transactions.length);
 
           // Fetch transactions for the block
           const blockWithTxs = await Promise.all(
