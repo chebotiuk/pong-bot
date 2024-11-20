@@ -32,14 +32,13 @@ async function getFollowingTransactions(transactionHash, contractAddress) {
       console.log('Total calls amount allocated for missed transactions scanning per 24h: ' + totalCallsAllowed);
       const apprMaxEthTransactionsInBlock = 1500;
       const scanTimeoutOffset = (1440 * 60 * 1000) / (totalCallsAllowed / apprMaxEthTransactionsInBlock); // 24 hours in milliseconds / totalCallsAllowed
-      console.log('Scan timeout offset: ', scanTimeoutOffset);
+      console.log(`Scan timeout offset: ${scanTimeoutOffset / 1000} + min`);
 
       for (let i = scanBlockBias; i <= blocksToScan; i++) {
         console.log(
           'Blocks to scan: ' + blocksToScan,
           'Current iteration: ' + i
         );
-        await new Promise(resolve => setTimeout(resolve, scanTimeoutOffset));
 
         try {
           const block = await provider.getBlock(startBlockNumber + i);
@@ -72,7 +71,9 @@ async function getFollowingTransactions(transactionHash, contractAddress) {
           console.log("Unprocessed transaction hashes:", filteredTxs);
           for (const txHash of filteredTxs) {
             emitter.emit('transaction_found', { txHash });
-          } 
+          }
+
+          await new Promise(resolve => setTimeout(resolve, scanTimeoutOffset));
         } catch (error) {
           if (error.message.includes('exceeded maximum retry limit')) {
             console.error('Daily request count exceeded. Retrying after 12 hours...');
