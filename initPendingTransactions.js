@@ -32,7 +32,7 @@ async function getFollowingTransactions(transactionHash, contractAddress) {
       console.log('Total calls amount allocated for missed transactions scanning per 24h: ' + totalCallsAllowed);
       const apprMaxEthTransactionsInBlock = 1500;
       const scanTimeoutOffset = (1440 * 60 * 1000) / (totalCallsAllowed / apprMaxEthTransactionsInBlock); // 24 hours in milliseconds / totalCallsAllowed
-      console.log('Scan timeout offset in munutes: ', 1440 / totalCallsAllowed / apprMaxEthTransactionsInBlock);
+      console.log('Scan timeout offset: ', scanTimeoutOffset);
 
       for (let i = scanBlockBias; i <= blocksToScan; i++) {
         console.log(
